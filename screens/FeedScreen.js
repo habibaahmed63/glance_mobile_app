@@ -279,7 +279,7 @@ export default function FeedScreen({ onNotifPress, onARPress }) {
                             <TouchableOpacity onPress={() => fetchLikes(item.id)} style={styles.countBtn}>
                                 <Ionicons name="heart" size={14} color={C.primary} />
                                 <Text style={[styles.countText, { color: C.textSecondary }]}>
-                                    {item.likes_count} {item.likes_count === 1 ? 'like' : 'likes'}
+                                    {(item.likes_count || 0) + ' ' + ((item.likes_count === 1) ? 'like' : 'likes')}
                                 </Text>
                             </TouchableOpacity>
                         )}
@@ -290,7 +290,7 @@ export default function FeedScreen({ onNotifPress, onARPress }) {
                             <TouchableOpacity onPress={() => { setCommentsPostId(item.id); fetchComments(item.id); }} style={styles.countBtn}>
                                 <Ionicons name="chatbubble" size={14} color={C.textSecondary} />
                                 <Text style={[styles.countText, { color: C.textSecondary }]}>
-                                    {String(commentCounts[item.id]) + ' ' + (commentCounts[item.id] === 1 ? 'comment' : 'comments')}
+                                    {(commentCounts[item.id] || 0) + ' ' + (commentCounts[item.id] === 1 ? 'comment' : 'comments')}
                                 </Text>
                             </TouchableOpacity>
                         )}

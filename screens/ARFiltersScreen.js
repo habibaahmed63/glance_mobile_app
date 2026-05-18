@@ -256,7 +256,7 @@ export default function ARFiltersScreen({ onClose, onPhotoTaken }) {
                 {selectedFilter !== 'none' && (
                     <View style={S.filterBadge}>
                         <Text style={S.filterBadgeText}>
-                            {FILTERS.find(f => f.id === selectedFilter)?.emoji} {FILTERS.find(f => f.id === selectedFilter)?.label} filter
+                            {(FILTERS.find(f => f.id === selectedFilter)?.emoji || '') + ' ' + (FILTERS.find(f => f.id === selectedFilter)?.label || '') + ' filter'}
                         </Text>
                     </View>
                 )}
