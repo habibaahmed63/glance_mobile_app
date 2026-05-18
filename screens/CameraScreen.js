@@ -1,12 +1,12 @@
 import { useState, useRef, useEffect } from 'react';
 import {
-    View, Text, StyleSheet, TouchableOpacity,
+    View, StyleSheet, Text, TouchableOpacity,
     Alert, Image, ActivityIndicator
 } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import * as ImageManipulator from 'expo-image-manipulator';
 import { StatusBar } from 'expo-status-bar';
-import * as Haptics from 'expo-haptics';
+import { mediumFeedback, successFeedback } from '../utils/haptics';
 import { supabase } from '../supabaseClient';
 import useAuthStore from '../store/authStore';
 import { COLORS, RADIUS } from '../constants/theme';
@@ -26,7 +26,7 @@ export default function CameraScreen({ onClose, onPostCreated }) {
 
     const takePhoto = async () => {
         if (!cameraRef.current) return;
-        await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+        await mediumFeedback();
         try {
             const photo = await cameraRef.current.takePictureAsync({ quality: 0.8 });
             const manipulated = await ImageManipulator.manipulateAsync(
@@ -65,7 +65,7 @@ export default function CameraScreen({ onClose, onPostCreated }) {
 
             if (postError) throw new Error(postError.message);
 
-            await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+            await successFeedback();
             Alert.alert('Posted! ✨', 'Your photo has been shared.', [
                 { text: 'OK', onPress: () => { onPostCreated?.(); onClose(); } }
             ]);
@@ -126,12 +126,14 @@ export default function CameraScreen({ onClose, onPostCreated }) {
     return (
         <View style={styles.container}>
             <StatusBar style="light" />
-            <CameraView
-                ref={cameraRef}
-                style={styles.camera}
-                facing={facing}
-                flash={flash}
-            >
+            <View style={styles.camera}>
+                <CameraView
+                    ref={cameraRef}
+                    style={StyleSheet.absoluteFill}
+                    facing={facing}
+                    flash={flash}
+                />
+                {/* Top controls */}
                 <View style={styles.topControls}>
                     <TouchableOpacity style={styles.controlBtn} onPress={onClose}>
                         <Text style={styles.controlBtnText}>✕</Text>
@@ -142,6 +144,7 @@ export default function CameraScreen({ onClose, onPostCreated }) {
                     </TouchableOpacity>
                 </View>
 
+                {/* Bottom controls */}
                 <View style={styles.bottomControls}>
                     <TouchableOpacity style={styles.flipBtn} onPress={() => setFacing(f => f === 'back' ? 'front' : 'back')}>
                         <Text style={styles.flipBtnText}>🔄</Text>
@@ -151,7 +154,7 @@ export default function CameraScreen({ onClose, onPostCreated }) {
                     </TouchableOpacity>
                     <View style={{ width: 50 }} />
                 </View>
-            </CameraView>
+            </View>
         </View>
     );
 }

@@ -187,6 +187,7 @@ export default function StoriesBar({ themeColors }) {
     return (
         <>
             <View style={[styles.bar, { backgroundColor: C.background, borderBottomColor: C.border }]}>
+                {/* Add story */}
                 <TouchableOpacity style={styles.bubble} onPress={() => {
                     if (!permission?.granted) requestPermission();
                     setCameraVisible(true);
@@ -225,6 +226,7 @@ export default function StoriesBar({ themeColors }) {
                 )}
             </View>
 
+            {/* Camera modal */}
             <Modal visible={cameraVisible} animationType="slide" onRequestClose={() => { setCameraVisible(false); setCapturedPhoto(null); }}>
                 <View style={{ flex: 1, backgroundColor: '#000' }}>
                     <StatusBar style="light" />
@@ -247,22 +249,25 @@ export default function StoriesBar({ themeColors }) {
                             </TouchableOpacity>
                         </>
                     ) : permission?.granted ? (
-                        <CameraView ref={cameraRef} style={{ flex: 1, justifyContent: 'space-between' }} facing={facing}>
-                            <View style={styles.camTop}>
-                                <TouchableOpacity style={styles.camBtn} onPress={() => setCameraVisible(false)}>
-                                    <Ionicons name="close" size={22} color="#fff" />
-                                </TouchableOpacity>
-                                <Text style={{ color: '#fff', fontWeight: '700', fontSize: 16 }}>New Story</Text>
-                                <TouchableOpacity style={styles.camBtn} onPress={() => setFacing(f => f === 'back' ? 'front' : 'back')}>
-                                    <Ionicons name="camera-reverse-outline" size={22} color="#fff" />
-                                </TouchableOpacity>
+                        <View style={{ flex: 1 }}>
+                            <CameraView ref={cameraRef} style={StyleSheet.absoluteFill} facing={facing} />
+                            <View style={[StyleSheet.absoluteFill, { justifyContent: 'space-between' }]}>
+                                <View style={styles.camTop}>
+                                    <TouchableOpacity style={styles.camBtn} onPress={() => setCameraVisible(false)}>
+                                        <Ionicons name="close" size={22} color="#fff" />
+                                    </TouchableOpacity>
+                                    <Text style={{ color: '#fff', fontWeight: '700', fontSize: 16 }}>New Story</Text>
+                                    <TouchableOpacity style={styles.camBtn} onPress={() => setFacing(f => f === 'back' ? 'front' : 'back')}>
+                                        <Ionicons name="camera-reverse-outline" size={22} color="#fff" />
+                                    </TouchableOpacity>
+                                </View>
+                                <View style={{ alignItems: 'center', paddingBottom: 60 }}>
+                                    <TouchableOpacity style={styles.shutter} onPress={takePhoto}>
+                                        <View style={styles.shutterInner} />
+                                    </TouchableOpacity>
+                                </View>
                             </View>
-                            <View style={{ alignItems: 'center', paddingBottom: 60 }}>
-                                <TouchableOpacity style={styles.shutter} onPress={takePhoto}>
-                                    <View style={styles.shutterInner} />
-                                </TouchableOpacity>
-                            </View>
-                        </CameraView>
+                        </View>
                     ) : (
                         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: 16 }}>
                             <Text style={{ color: '#fff', fontSize: 16 }}>Camera permission needed</Text>
@@ -274,10 +279,12 @@ export default function StoriesBar({ themeColors }) {
                 </View>
             </Modal>
 
+            {/* Story viewer */}
             <Modal visible={viewerVisible} animationType="fade" onRequestClose={closeViewer}>
                 <View style={{ flex: 1, backgroundColor: '#000' }}>
                     <StatusBar style="light" hidden />
 
+                    {/* Progress */}
                     <View style={styles.progressRow}>
                         {viewingGroup?.stories.map((_, i) => (
                             <View key={i} style={styles.progressBg}>
@@ -290,6 +297,7 @@ export default function StoriesBar({ themeColors }) {
                         ))}
                     </View>
 
+                    {/* User info */}
                     <View style={styles.viewerHeader}>
                         <View style={styles.viewerAvatar}>
                             {viewingGroup?.avatar_url
@@ -303,16 +311,19 @@ export default function StoriesBar({ themeColors }) {
                         </TouchableOpacity>
                     </View>
 
+                    {/* Story image */}
                     {viewingGroup?.stories[viewingIndex]?.image_url && (
                         <Image source={{ uri: viewingGroup.stories[viewingIndex].image_url }}
                             style={{ width: SCREEN_WIDTH, height: SCREEN_HEIGHT }} resizeMode="cover" />
                     )}
 
+                    {/* Tap areas */}
                     <View style={styles.tapRow}>
                         <TouchableOpacity style={{ flex: 1 }} onPress={prevStory} />
                         <TouchableOpacity style={{ flex: 1 }} onPress={nextStory} />
                     </View>
 
+                    {/* Reply*/}
                     {viewingGroup && !viewingGroup.isOwn && (
                         <View style={styles.replyRow}>
                             <TextInput

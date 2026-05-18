@@ -160,10 +160,8 @@ export default function NotificationsScreen({ onClose }) {
                 {/* Content */}
                 <View style={styles.notifContent}>
                     <Text style={[styles.notifText, { color: C.text }]}>
-                        <Text style={[styles.notifUsername, { color: C.primaryLight }]}>
-                            {'@' + item.username}
-                        </Text>
-                        {' ' + item.message}
+                        <Text style={[styles.notifUsername, { color: C.primaryLight }]}>{'@' + item.username + ' '}</Text>
+                        <Text style={{ color: C.text }}>{item.message}</Text>
                     </Text>
                     {item.preview ? (
                         <Text style={[styles.preview, { color: C.textMuted }]} numberOfLines={1}>

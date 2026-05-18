@@ -45,9 +45,12 @@ export default function ARFiltersScreen({ onClose, onPhotoTaken }) {
     // Filter size slider
     const [filterScale, setFilterScale] = useState(1.0);
 
+    const selectedFilterRef = useRef(selectedFilter);
+    useEffect(() => { selectedFilterRef.current = selectedFilter; }, [selectedFilter]);
+
     const panResponder = useRef(PanResponder.create({
-        onStartShouldSetPanResponder: () => selectedFilter !== 'none',
-        onMoveShouldSetPanResponder: () => selectedFilter !== 'none',
+        onStartShouldSetPanResponder: () => selectedFilterRef.current !== 'none',
+        onMoveShouldSetPanResponder: () => selectedFilterRef.current !== 'none',
         onPanResponderGrant: () => {
             filterPos.setOffset({
                 x: filterPos.x._value,
@@ -64,9 +67,9 @@ export default function ARFiltersScreen({ onClose, onPhotoTaken }) {
         },
     })).current;
 
-    // Rebuild panResponder when filter changes
+    // Reset position when filter changes
     useEffect(() => {
-        // Reset position to face center when switching filters
+        selectedFilterRef.current = selectedFilter;
         if (selectedFilter !== 'none') {
             filterPos.setValue({ x: SW * 0.15, y: SH * 0.28 });
         }
@@ -302,6 +305,13 @@ export default function ARFiltersScreen({ onClose, onPhotoTaken }) {
                 }}
             />
 
+            {/* Instruction when no filter */}
+            {selectedFilter === 'none' && (
+                <View style={S.instruction}>
+                    <Text style={S.instructionText}>Select a filter below, then drag it over your face</Text>
+                </View>
+            )}
+
             {/* Draggable filter overlay */}
             {selectedFilter !== 'none' && (
                 <Animated.View
@@ -327,7 +337,7 @@ export default function ARFiltersScreen({ onClose, onPhotoTaken }) {
                 <View style={[S.faceChip, { backgroundColor: faceDetected ? '#4ade8044' : 'rgba(0,0,0,0.5)' }]}>
                     <View style={[S.faceDot, { backgroundColor: faceDetected ? '#4ade80' : '#888' }]} />
                     <Text style={S.faceChipText}>
-                        {faceDetected ? 'Face detected ✓' : 'Drag filter to face'}
+                        {faceDetected ? 'Face detected ✓' : 'Drag & resize filter over face'}
                     </Text>
                 </View>
             </View>
@@ -420,6 +430,13 @@ const S = StyleSheet.create({
     },
     faceDot: { width: 7, height: 7, borderRadius: 4 },
     faceChipText: { color: '#fff', fontSize: 11 },
+
+    instruction: {
+        position: 'absolute', top: SH * 0.45, left: 30, right: 30,
+        backgroundColor: 'rgba(0,0,0,0.6)', borderRadius: 12,
+        paddingHorizontal: 16, paddingVertical: 10, alignItems: 'center',
+    },
+    instructionText: { color: 'rgba(255,255,255,0.85)', fontSize: 13, textAlign: 'center', lineHeight: 18 },
 
     // Size controls
     sizeControls: {

@@ -24,7 +24,7 @@ const usePostsStore = create((set) => ({
                 return;
             }
 
-            // Try to get profiles - but don't fail if missing
+            // Try to get profiles//
             const userIds = [...new Set(posts.map(p => p.user_id))];
             let profileMap = {};
             try {
@@ -37,7 +37,7 @@ const usePostsStore = create((set) => ({
                 console.log('profiles fetch failed, showing posts without usernames');
             }
 
-            // Try to get likes - but don't fail if missing
+            // Try to get likes//
             let likeCounts = {};
             try {
                 const postIds = posts.map(p => p.id);

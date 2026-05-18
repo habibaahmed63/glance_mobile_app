@@ -110,7 +110,7 @@ export default function ProfileScreen() {
         setPostLikes([]);
         setPostComments([]);
 
-        // Fetch likes - separate queries, no joins
+        // Fetch likes//
         const { data: likes } = await supabase
             .from('likes')
             .select('user_id')
@@ -125,7 +125,7 @@ export default function ProfileScreen() {
             setPostLikes(profs || []);
         }
 
-        // Fetch comments - separate queries, no joins
+        // Fetch comments//
         const { data: comments } = await supabase
             .from('comments')
             .select('id, user_id, content, created_at')
@@ -206,7 +206,7 @@ export default function ProfileScreen() {
         ]);
     };
 
-    // EDIT MODE
+    // EDIT MODE//
     if (editMode) {
         return (
             <KeyboardAvoidingView style={[styles.container, { backgroundColor: C.background }]} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
@@ -260,7 +260,7 @@ export default function ProfileScreen() {
         );
     }
 
-    // VIEW MODE
+    // VIEW MODE//
     return (
         <View style={[styles.container, { backgroundColor: C.background }]}>
             <StatusBar style="light" />

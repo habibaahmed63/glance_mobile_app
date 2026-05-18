@@ -262,10 +262,10 @@ export default function FeedScreen({ onNotifPress, onARPress }) {
                     <Text style={[styles.postContent, { color: C.text }]}>
                         {item.content.split(' ').map((word, i) =>
                             word.startsWith('@')
-                                ? <Text key={i} style={{ color: C.primary, fontWeight: '700' }}>{word} </Text>
+                                ? <Text key={i} style={{ color: C.primary, fontWeight: '700' }}>{word + ' '}</Text>
                                 : word.startsWith('#')
-                                    ? <Text key={i} style={{ color: C.accent }}>{word} </Text>
-                                    : word + ' '
+                                    ? <Text key={i} style={{ color: C.accent }}>{word + ' '}</Text>
+                                    : <Text key={i} style={{ color: C.text }}>{word + ' '}</Text>
                         )}
                     </Text>
                 ) : null}
@@ -290,7 +290,7 @@ export default function FeedScreen({ onNotifPress, onARPress }) {
                             <TouchableOpacity onPress={() => { setCommentsPostId(item.id); fetchComments(item.id); }} style={styles.countBtn}>
                                 <Ionicons name="chatbubble" size={14} color={C.textSecondary} />
                                 <Text style={[styles.countText, { color: C.textSecondary }]}>
-                                    {commentCounts[item.id]} {commentCounts[item.id] === 1 ? 'comment' : 'comments'}
+                                    {String(commentCounts[item.id]) + ' ' + (commentCounts[item.id] === 1 ? 'comment' : 'comments')}
                                 </Text>
                             </TouchableOpacity>
                         )}

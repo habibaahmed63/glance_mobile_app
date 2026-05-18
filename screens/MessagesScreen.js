@@ -97,7 +97,6 @@ export default function MessagesScreen() {
                     (msg.sender_id === otherId && msg.receiver_id === user.id);
                 if (relevant) {
                     setMessages(prev => {
-                        // Avoid duplicates
                         if (prev.find(m => m.id === msg.id)) return prev;
                         return [...prev, msg];
                     });
@@ -153,7 +152,7 @@ export default function MessagesScreen() {
         setSending(false);
     };
 
-    // ── Voice recording ───────────────────────────────────────────────────────
+    //Voice recording//
     const startRecording = async () => {
         try {
             const { status } = await Audio.requestPermissionsAsync();
@@ -224,9 +223,8 @@ export default function MessagesScreen() {
         } catch (e) { setPlayingId(null); }
     };
 
-    // ── Live location sharing ─────────────────────────────────────────────────
+    //Live location sharing//
     const shareLocation = async () => {
-        // If already sharing, stop
         if (sharingLocation) {
             stopSharingLocation();
             return;
@@ -240,14 +238,13 @@ export default function MessagesScreen() {
                 return;
             }
 
-            // Get initial location and send first message
+            // Get initial location and send first message//
             const loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.High });
             const lat = loc.coords.latitude;
             const lng = loc.coords.longitude;
             const mapsUrl = `https://maps.google.com/?q=${lat},${lng}`;
             const content = `📍 Live Location: ${mapsUrl}`;
 
-            // Insert message and store its ID for updates
             const { data: msg } = await supabase.from('messages').insert([{
                 sender_id: user.id, receiver_id: selectedUser.id, content,
             }]).select().single();
@@ -256,7 +253,7 @@ export default function MessagesScreen() {
                 setMessages(prev => [...prev, msg]);
             }
 
-            // Watch position and update every 10 seconds
+            // Watch position and update every 10 seconds//
             locationWatcher.current = await Location.watchPositionAsync(
                 { accuracy: Location.Accuracy.High, timeInterval: 10000, distanceInterval: 5 },
                 async (newLoc) => {
@@ -287,12 +284,11 @@ export default function MessagesScreen() {
         setSharingLocation(false);
     };
 
-    // Stop location when leaving chat
     useEffect(() => {
         return () => stopSharingLocation();
     }, [selectedUser]);
 
-    // ── Share file ────────────────────────────────────────────────────────────
+    //Share file//
     const shareFile = async () => {
         try {
             const result = await DocumentPicker.getDocumentAsync({ type: '*/*', copyToCacheDirectory: true });
@@ -325,7 +321,7 @@ export default function MessagesScreen() {
     const renderMessage = ({ item }) => {
         const isOwn = item.sender_id === user.id;
 
-        // Location message
+        // Location message//
         if (item.content?.startsWith('📍 Live Location:')) {
             const url = item.content.replace('📍 Live Location: ', '');
             return (
@@ -342,7 +338,7 @@ export default function MessagesScreen() {
             );
         }
 
-        // File message
+        // File message//
         if (item.file_url) {
             return (
                 <TouchableOpacity
@@ -361,7 +357,7 @@ export default function MessagesScreen() {
             );
         }
 
-        // Voice message
+        // Voice message//
         if (item.audio_url) {
             return (
                 <TouchableOpacity
@@ -386,7 +382,7 @@ export default function MessagesScreen() {
         );
     };
 
-    // ── SEARCH VIEW ───────────────────────────────────────────────────────────
+    //SEARCH VIEW//
     if (view === 'search') {
         return (
             <View style={[styles.container, { backgroundColor: C.background }]}>
@@ -426,7 +422,7 @@ export default function MessagesScreen() {
         );
     }
 
-    // ── CHAT VIEW ─────────────────────────────────────────────────────────────
+    //CHAT VIEW//
     if (view === 'chat' && selectedUser) {
         return (
             <KeyboardAvoidingView style={[styles.container, { backgroundColor: C.background }]} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
@@ -499,7 +495,7 @@ export default function MessagesScreen() {
         );
     }
 
-    // ── LIST VIEW ─────────────────────────────────────────────────────────────
+    // LIST VIEW//
     return (
         <View style={[styles.container, { backgroundColor: C.background }]}>
             <StatusBar style="light" />

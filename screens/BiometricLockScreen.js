@@ -14,13 +14,13 @@ export const BIOMETRIC_KEY = 'glance_biometric_enabled';
 
 // ─── Lock Screen ──────────────────────────────────────────────────────────────
 export function BiometricLockScreen({ onUnlock, onMount }) {
-    const [status, setStatus] = useState('idle');
+    const [status, setStatus] = useState('idle'); // idle | authenticating | failed | success
     const [biometricLabel, setBiometricLabel] = useState('Biometric');
     const [biometricIcon, setBiometricIcon] = useState('finger-print-outline');
     const hasTriggered = useRef(false);
 
     useEffect(() => {
-        onMount?.(); 
+        onMount?.(); // tell App.js that biometric prompt is active
         init();
     }, []);
 
@@ -34,6 +34,7 @@ export function BiometricLockScreen({ onUnlock, onMount }) {
             setBiometricLabel('Fingerprint');
             setBiometricIcon('finger-print-outline');
         }
+        // Auto-trigger once
         if (!hasTriggered.current) {
             hasTriggered.current = true;
             setTimeout(authenticate, 500);
@@ -43,8 +44,9 @@ export function BiometricLockScreen({ onUnlock, onMount }) {
     const authenticate = async () => {
         setStatus('authenticating');
         try {
-            const result = await LocalAuthentication.authenticateAsync({
-                promptMessage: 'Unlock Glance',
+            // Try biometric-only first (Face ID / Fingerprint)
+            let result = await LocalAuthentication.authenticateAsync({
+                promptMessage: 'Use Face ID or Fingerprint to unlock Glance',
                 cancelLabel: 'Cancel',
                 fallbackLabel: 'Use Passcode',
                 disableDeviceFallback: false,
@@ -52,6 +54,8 @@ export function BiometricLockScreen({ onUnlock, onMount }) {
             if (result.success) {
                 setStatus('success');
                 setTimeout(() => onUnlock(), 200);
+            } else if (result.error === 'user_cancel') {
+                setStatus('failed');
             } else {
                 setStatus('failed');
             }
@@ -69,6 +73,10 @@ export function BiometricLockScreen({ onUnlock, onMount }) {
         <View style={styles.lockScreen}>
             <StatusBar style="light" />
 
+            <View style={styles.logoWrap}>
+               
+                <Text style={styles.logoText}>GLANCE</Text>
+            </View>
 
             <View style={[
                 styles.iconWrap,

@@ -7,10 +7,10 @@ const useAccessibilityStore = create((set, get) => ({
     largeFonts: false,
     highContrast: false,
     reduceMotion: false,
-    themeOverride: null, // null = follow system, dark, light
+    themeOverride: null, 
     loaded: false,
 
-    // Load saved preferences
+    // Load saved preferences//
     loadPreferences: async () => {
         try {
             const data = await AsyncStorage.getItem(ACCESSIBILITY_KEY);
@@ -25,7 +25,7 @@ const useAccessibilityStore = create((set, get) => ({
         }
     },
 
-    // Toggle large fonts
+    // Toggle large fonts//
     toggleLargeFonts: async () => {
         const newVal = !get().largeFonts;
         set({ largeFonts: newVal });
@@ -36,7 +36,7 @@ const useAccessibilityStore = create((set, get) => ({
         }));
     },
 
-    // Toggle high contrast
+    // Toggle high contrast//
     toggleHighContrast: async () => {
         const newVal = !get().highContrast;
         set({ highContrast: newVal });
@@ -47,7 +47,7 @@ const useAccessibilityStore = create((set, get) => ({
         }));
     },
 
-    // Set theme override
+    // Set theme override//
     setThemeOverride: async (theme) => {
         set({ themeOverride: theme });
         const current = {
@@ -59,7 +59,7 @@ const useAccessibilityStore = create((set, get) => ({
         await AsyncStorage.setItem(ACCESSIBILITY_KEY, JSON.stringify(current));
     },
 
-    // Toggle reduce motion
+    // Toggle reduce motion//
     toggleReduceMotion: async () => {
         const newVal = !get().reduceMotion;
         set({ reduceMotion: newVal });
