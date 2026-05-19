@@ -238,7 +238,6 @@ export default function MessagesScreen() {
                 return;
             }
 
-            // Get initial location and send first message//
             const loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.High });
             const lat = loc.coords.latitude;
             const lng = loc.coords.longitude;
@@ -253,7 +252,6 @@ export default function MessagesScreen() {
                 setMessages(prev => [...prev, msg]);
             }
 
-            // Watch position and update every 10 seconds//
             locationWatcher.current = await Location.watchPositionAsync(
                 { accuracy: Location.Accuracy.High, timeInterval: 10000, distanceInterval: 5 },
                 async (newLoc) => {
@@ -288,7 +286,7 @@ export default function MessagesScreen() {
         return () => stopSharingLocation();
     }, [selectedUser]);
 
-    //Share file//
+    // Share file//
     const shareFile = async () => {
         try {
             const result = await DocumentPicker.getDocumentAsync({ type: '*/*', copyToCacheDirectory: true });
@@ -410,7 +408,7 @@ export default function MessagesScreen() {
                                 </View>
                                 <View style={styles.convoInfo}>
                                     <Text style={[styles.convoName, { color: C.text }]}>{item.full_name}</Text>
-                                    <Text style={[styles.convoLast, { color: C.textMuted }]}>@{item.username}</Text>
+                                    <Text style={[styles.convoLast, { color: C.textMuted }]}>{'@' + (item.username)}</Text>
                                 </View>
                                 <Ionicons name="chatbubble-outline" size={20} color={C.primary} />
                             </TouchableOpacity>
@@ -435,7 +433,7 @@ export default function MessagesScreen() {
                         {selectedUser.avatar_url ? <Image source={{ uri: selectedUser.avatar_url }} style={styles.convoAvatarImg} />
                             : <Text style={[styles.convoAvatarText, { color: C.primaryLight }]}>{selectedUser.username?.[0]?.toUpperCase()}</Text>}
                     </View>
-                    <Text style={[styles.chatName, { color: C.text }]}>@{selectedUser.username}</Text>
+                    <Text style={[styles.chatName, { color: C.text }]}>{'@' + (selectedUser.username)}</Text>
                     <TouchableOpacity onPress={shareLocation} style={{ marginLeft: 'auto', padding: 6 }}>
                         <Ionicons
                             name={sharingLocation ? 'location' : 'location-outline'}
@@ -495,7 +493,7 @@ export default function MessagesScreen() {
         );
     }
 
-    // LIST VIEW//
+    //LIST VIEW//
     return (
         <View style={[styles.container, { backgroundColor: C.background }]}>
             <StatusBar style="light" />
@@ -525,7 +523,7 @@ export default function MessagesScreen() {
                                         : <Text style={[styles.convoAvatarText, { color: C.primaryLight }]}>{item.username?.[0]?.toUpperCase()}</Text>}
                                 </View>
                                 <View style={styles.convoInfo}>
-                                    <Text style={[styles.convoName, { color: C.text }]}>@{item.username}</Text>
+                                    <Text style={[styles.convoName, { color: C.text }]}>{'@' + (item.username)}</Text>
                                     <Text style={[styles.convoLast, { color: C.textMuted }]} numberOfLines={1}>
                                         {item.lastMessage?.audio_url ? '🎤 Voice' : item.lastMessage?.file_url ? '📎 File' : item.lastMessage?.content?.startsWith('📍') ? '📍 Location' : item.lastMessage?.content}
                                     </Text>

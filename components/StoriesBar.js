@@ -39,6 +39,7 @@ export default function StoriesBar({ themeColors }) {
         setLoading(true);
         try {
             const now = new Date().toISOString();
+            // Fetch stories without join//
             const { data, error } = await supabase
                 .from('stories')
                 .select('id, user_id, image_url, expires_at, created_at')
@@ -48,6 +49,7 @@ export default function StoriesBar({ themeColors }) {
             if (error) { console.log('Stories error:', error.message); setLoading(false); return; }
             if (!data || data.length === 0) { setStories([]); setLoading(false); return; }
 
+            // Fetch profiles separately//
             const userIds = [...new Set(data.map(s => s.user_id))];
             const { data: profiles } = await supabase
                 .from('profiles')
@@ -56,6 +58,7 @@ export default function StoriesBar({ themeColors }) {
 
             const profileMap = {};
             if (profiles) profiles.forEach(p => { profileMap[p.id] = p; });
+
 
             const map = {};
             data.forEach(s => {
@@ -226,7 +229,7 @@ export default function StoriesBar({ themeColors }) {
                 )}
             </View>
 
-            {/* Camera modal */}
+            {/* Camera */}
             <Modal visible={cameraVisible} animationType="slide" onRequestClose={() => { setCameraVisible(false); setCapturedPhoto(null); }}>
                 <View style={{ flex: 1, backgroundColor: '#000' }}>
                     <StatusBar style="light" />
@@ -305,7 +308,7 @@ export default function StoriesBar({ themeColors }) {
                                 : <Text style={{ color: '#fff', fontWeight: '700' }}>{viewingGroup?.username?.[0]?.toUpperCase()}</Text>
                             }
                         </View>
-                        <Text style={styles.viewerName}>@{viewingGroup?.username}</Text>
+                        <Text style={styles.viewerName}>{'@' + (viewingGroup?.username)}</Text>
                         <TouchableOpacity onPress={closeViewer} style={{ padding: 4 }}>
                             <Ionicons name="close" size={22} color="#fff" />
                         </TouchableOpacity>
@@ -323,7 +326,7 @@ export default function StoriesBar({ themeColors }) {
                         <TouchableOpacity style={{ flex: 1 }} onPress={nextStory} />
                     </View>
 
-                    {/* Reply*/}
+                    {/* Reply */}
                     {viewingGroup && !viewingGroup.isOwn && (
                         <View style={styles.replyRow}>
                             <TextInput

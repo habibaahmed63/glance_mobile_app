@@ -40,8 +40,10 @@ export default function QRCodeCard({ visible, onClose, profile }) {
                 <TouchableOpacity style={styles.backdrop} onPress={onClose} />
 
                 <View style={[styles.card, { backgroundColor: C.surface, borderTopColor: C.border }]}>
+                    {/* Handle bar */}
                     <View style={styles.handle} />
 
+                    {/* Header */}
                     <View style={styles.header}>
                         <Text style={[styles.title, { color: C.text }]}>My QR Code</Text>
                         <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
@@ -49,6 +51,7 @@ export default function QRCodeCard({ visible, onClose, profile }) {
                         </TouchableOpacity>
                     </View>
 
+                    {/* Profile info */}
                     <View style={styles.profileInfo}>
                         <View style={styles.avatar}>
                             <Text style={styles.avatarText}>
@@ -56,12 +59,13 @@ export default function QRCodeCard({ visible, onClose, profile }) {
                             </Text>
                         </View>
                         <Text style={[styles.displayName, { color: C.text }]}>{profile.full_name}</Text>
-                        <Text style={styles.username}>@{profile.username}</Text>
+                        <Text style={styles.username}>{'@' + (profile.username)}</Text>
                         {profile.bio ? (
                             <Text style={styles.bio} numberOfLines={2}>{profile.bio}</Text>
                         ) : null}
                     </View>
 
+                    {/* QR Code */}
                     <View style={[styles.qrContainer, { backgroundColor: C.card, borderColor: C.border }]}>
                         <QRCode
                             value={profileUrl}
@@ -73,8 +77,10 @@ export default function QRCodeCard({ visible, onClose, profile }) {
                         />
                     </View>
 
+                    {/* URL label */}
                     <Text style={styles.urlLabel}>{profileUrl}</Text>
 
+                    {/* Actions */}
                     <View style={styles.actions}>
                         <TouchableOpacity style={styles.shareBtn} onPress={handleShare}>
                             <Ionicons name="share-outline" size={20} color="#fff" />
@@ -128,6 +134,7 @@ const styles = StyleSheet.create({
     },
     closeBtn: { padding: 4 },
 
+    // Profile info
     profileInfo: { alignItems: 'center', marginBottom: 24, gap: 4 },
     avatar: {
         width: 64, height: 64, borderRadius: 32,
@@ -141,6 +148,7 @@ const styles = StyleSheet.create({
     username: { color: COLORS.textSecondary, fontSize: 14 },
     bio: { color: COLORS.textMuted, fontSize: 13, textAlign: 'center', marginTop: 4 },
 
+    // QR Code
     qrContainer: {
         padding: 20,
         backgroundColor: COLORS.card,
@@ -154,6 +162,7 @@ const styles = StyleSheet.create({
         marginBottom: 24,
     },
 
+    // Actions
     actions: { width: '100%', marginBottom: 16 },
     shareBtn: {
         flexDirection: 'row',

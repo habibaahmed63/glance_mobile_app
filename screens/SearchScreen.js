@@ -25,28 +25,28 @@ export default function SearchScreen() {
     const [searched, setSearched] = useState(false);
     const [following, setFollowing] = useState(new Set());
 
-    // Profile view state
-    const [profileScreen, setProfileScreen] = useState(null); // null | profile object
+    // Profile view state//
+    const [profileScreen, setProfileScreen] = useState(null);
     const [profilePosts, setProfilePosts] = useState([]);
     const [profileStats, setProfileStats] = useState({ followers: 0, following: 0 });
 
-    // Follow list state
-    const [followModal, setFollowModal] = useState(null); // null | 'followers' | 'following'
+    // Follow list state//
+    const [followModal, setFollowModal] = useState(null);
     const [followList, setFollowList] = useState([]);
     const [followListLoading, setFollowListLoading] = useState(false);
 
-    // Post detail state
-    const [postModal, setPostModal] = useState(null); // null | post object
+    // Post detail state//
+    const [postModal, setPostModal] = useState(null);
     const [postLikes, setPostLikes] = useState([]);
     const [postComments, setPostComments] = useState([]);
     const [postLoading, setPostLoading] = useState(false);
 
-    // Message state
-    const [msgModal, setMsgModal] = useState(null); // null | profile object
+    // Message state//
+    const [msgModal, setMsgModal] = useState(null);
     const [msgText, setMsgText] = useState('');
     const [msgSending, setMsgSending] = useState(false);
 
-    // ── Search ────────────────────────────────────────────────────────────────
+    //Search//
     const doSearch = useCallback(async (text) => {
         setQuery(text);
         if (!text || text.length < 2) { setPosts([]); setPeople([]); setSearched(false); return; }
@@ -81,7 +81,7 @@ export default function SearchScreen() {
         setLoading(false);
     }, []);
 
-    // ── Follow toggle ─────────────────────────────────────────────────────────
+    //Follow toggl//
     const toggleFollow = async (targetId) => {
         const isFollowing = following.has(targetId);
         setFollowing(prev => {
@@ -97,7 +97,7 @@ export default function SearchScreen() {
         if (profileScreen?.id === targetId) loadProfileStats(targetId);
     };
 
-    // ── Open profile ──────────────────────────────────────────────────────────
+    //Open profile//
     const openProfile = async (profile) => {
         setProfileScreen(profile);
         setProfilePosts([]);
@@ -112,7 +112,7 @@ export default function SearchScreen() {
         setProfileStats({ followers: f1 || 0, following: f2 || 0 });
     };
 
-    // ── Open follow list ──────────────────────────────────────────────────────
+    //Open follow list//
     const openFollowList = async (type) => {
         setFollowModal(type);
         setFollowListLoading(true);
@@ -136,7 +136,7 @@ export default function SearchScreen() {
         setFollowListLoading(false);
     };
 
-    // ── Open post detail ──────────────────────────────────────────────────────
+    //Open post detail//
     const openPost = async (post) => {
         setPostModal(post);
         setPostLikes([]);
@@ -159,7 +159,7 @@ export default function SearchScreen() {
         setPostLoading(false);
     };
 
-    // ── Send message ──────────────────────────────────────────────────────────
+    // Send message//
     const sendMessage = async () => {
         if (!msgText.trim() || !msgModal) return;
         setMsgSending(true);
@@ -176,7 +176,6 @@ export default function SearchScreen() {
         }
     };
 
-    // ── Avatar helper ─────────────────────────────────────────────────────────
     const Avatar = ({ uri, name, size = 38 }) => (
         <View style={{ width: size, height: size, borderRadius: size / 2, backgroundColor: C.card, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
             {uri
@@ -186,7 +185,7 @@ export default function SearchScreen() {
         </View>
     );
 
-    // ── SEARCH RESULTS SCREEN ─────────────────────────────────────────────────
+    //SEARCH RESULTS SCREEN//
     const SearchScreen = (
         <View style={[S.container, { backgroundColor: C.background }]}>
             <StatusBar style="light" />
@@ -271,7 +270,7 @@ export default function SearchScreen() {
         </View>
     );
 
-    // ── PROFILE SCREEN ────────────────────────────────────────────────────────
+    //PROFILE SCREEN//
     const ProfileView = profileScreen && (
         <View style={[S.container, { backgroundColor: C.background }]}>
             <StatusBar style="light" />
@@ -355,12 +354,12 @@ export default function SearchScreen() {
         </View>
     );
 
-    // ── RENDER ────────────────────────────────────────────────────────────────
+    // RENDER//
     return (
         <View style={{ flex: 1 }}>
             {profileScreen ? ProfileView : SearchScreen}
 
-            {/* Post detail modal */}
+            {/* Post detail */}
             <Modal visible={postModal !== null} animationType="slide" transparent onRequestClose={() => { setPostModal(null); setPostLikes([]); setPostComments([]); }}>
                 <View style={S.sheetBg}>
                     <TouchableOpacity style={{ flex: 1 }} onPress={() => { setPostModal(null); setPostLikes([]); setPostComments([]); }} />

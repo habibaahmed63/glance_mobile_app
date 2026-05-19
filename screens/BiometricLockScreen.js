@@ -12,20 +12,20 @@ import { COLORS, RADIUS } from '../constants/theme';
 
 export const BIOMETRIC_KEY = 'glance_biometric_enabled';
 
-// ─── Lock Screen ──────────────────────────────────────────────────────────────
+// Lock Screen //
 export function BiometricLockScreen({ onUnlock, onMount }) {
-    const [status, setStatus] = useState('idle'); // idle | authenticating | failed | success
+    const [status, setStatus] = useState('idle');
     const [biometricLabel, setBiometricLabel] = useState('Biometric');
     const [biometricIcon, setBiometricIcon] = useState('finger-print-outline');
     const hasTriggered = useRef(false);
 
     useEffect(() => {
-        onMount?.(); // tell App.js that biometric prompt is active
+        onMount?.();
         init();
     }, []);
 
     const init = async () => {
-        // Detect type
+
         const types = await LocalAuthentication.supportedAuthenticationTypesAsync();
         if (types.includes(LocalAuthentication.AuthenticationType.FACIAL_RECOGNITION)) {
             setBiometricLabel('Face ID');
@@ -34,7 +34,6 @@ export function BiometricLockScreen({ onUnlock, onMount }) {
             setBiometricLabel('Fingerprint');
             setBiometricIcon('finger-print-outline');
         }
-        // Auto-trigger once
         if (!hasTriggered.current) {
             hasTriggered.current = true;
             setTimeout(authenticate, 500);
@@ -44,7 +43,7 @@ export function BiometricLockScreen({ onUnlock, onMount }) {
     const authenticate = async () => {
         setStatus('authenticating');
         try {
-            // Try biometric-only first (Face ID / Fingerprint)
+            // Try biometric-only first//
             let result = await LocalAuthentication.authenticateAsync({
                 promptMessage: 'Use Face ID or Fingerprint to unlock Glance',
                 cancelLabel: 'Cancel',
@@ -74,7 +73,9 @@ export function BiometricLockScreen({ onUnlock, onMount }) {
             <StatusBar style="light" />
 
             <View style={styles.logoWrap}>
-               
+                <View style={styles.logoCircle}>
+                    <Text style={styles.logoEmoji}>👁</Text>
+                </View>
                 <Text style={styles.logoText}>GLANCE</Text>
             </View>
 
@@ -124,7 +125,7 @@ export function BiometricLockScreen({ onUnlock, onMount }) {
     );
 }
 
-// ─── Settings Screen ──────────────────────────────────────────────────────────
+//Settings Screen//
 export function BiometricSettingsScreen({ onClose }) {
     const C = useTheme();
     const [supported, setSupported] = useState(false);

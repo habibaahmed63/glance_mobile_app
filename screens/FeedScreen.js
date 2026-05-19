@@ -43,6 +43,10 @@ export default function FeedScreen({ onNotifPress, onARPress }) {
     const [mentionSuggestions, setMentionSuggestions] = useState([]);
     const [showMentions, setShowMentions] = useState(false);
     const [likesModalPost, setLikesModalPost] = useState(null);
+    const [expandedTimePost, setExpandedTimePost] = useState(null);
+    const [unreadCount, setUnreadCount] = useState(0);
+    const [mentionedProfile, setMentionedProfile] = useState(null);
+    const [mentionedProfilePosts, setMentionedProfilePosts] = useState([]);
     const [commentCounts, setCommentCounts] = useState({});
     const [postLikes, setPostLikes] = useState([]);
     const { isConnected } = useNetworkStatus();
@@ -57,6 +61,51 @@ export default function FeedScreen({ onNotifPress, onARPress }) {
     const loadData = async () => {
         await fetchPosts();
         await fetchCommentCounts();
+        await fetchUnreadCount();
+    };
+
+    const openMentionedProfile = async (username) => {
+        const clean = username.replace('@', '').trim();
+        const { data: profile } = await supabase
+            .from('profiles').select('*').eq('username', clean).single();
+        if (!profile) return;
+        const { data: posts } = await supabase
+            .from('posts').select('*').eq('user_id', profile.id)
+            .order('created_at', { ascending: false });
+        setMentionedProfile(profile);
+        setMentionedProfilePosts(posts || []);
+    };
+
+    const fetchUnreadCount = async () => {
+        try {
+            // Get my post IDs
+            const { data: myPosts } = await supabase
+                .from('posts').select('id').eq('user_id', user.id);
+            if (!myPosts || myPosts.length === 0) {
+                const { count: followsCount } = await supabase.from('follows')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('following_id', user.id);
+                setUnreadCount(followsCount || 0);
+                return;
+            }
+            const myPostIds = myPosts.map(p => p.id);
+
+            // Count ALL likes + comments on my posts//
+            const { count: likesCount } = await supabase.from('likes')
+                .select('*', { count: 'exact', head: true })
+                .in('post_id', myPostIds)
+                .neq('user_id', user.id);
+            const { count: commentsCount } = await supabase.from('comments')
+                .select('*', { count: 'exact', head: true })
+                .in('post_id', myPostIds)
+                .neq('user_id', user.id);
+            const { count: followsCount } = await supabase.from('follows')
+                .select('*', { count: 'exact', head: true })
+                .eq('following_id', user.id);
+
+            const total = (likesCount || 0) + (commentsCount || 0) + (followsCount || 0);
+            setUnreadCount(total);
+        } catch (e) { console.log('Badge error:', e.message); }
     };
 
     const fetchCommentCounts = async () => {
@@ -86,7 +135,7 @@ export default function FeedScreen({ onNotifPress, onARPress }) {
         setRefreshing(false);
     }, []);
 
-    // ── Image picker (camera + library) ──────────────────────────────────────
+    //Image picker//
     const pickImage = async (source) => {
         if (source === 'camera') {
             const { status } = await ImagePicker.requestCameraPermissionsAsync();
@@ -107,7 +156,7 @@ export default function FeedScreen({ onNotifPress, onARPress }) {
         ]);
     };
 
-    // ── Mention detection ─────────────────────────────────────────────────────
+    //Mention detection//
     const handlePostInput = async (text) => {
         setPostContent(text);
         const words = text.split(' ');
@@ -134,7 +183,7 @@ export default function FeedScreen({ onNotifPress, onARPress }) {
         inputRef.current?.focus();
     };
 
-    // ── Upload image ──────────────────────────────────────────────────────────
+    //Upload image//
     const uploadPostImage = async (uri) => {
         const response = await fetch(uri);
         const blob = await response.blob();
@@ -145,7 +194,7 @@ export default function FeedScreen({ onNotifPress, onARPress }) {
         return supabase.storage.from('media').getPublicUrl(fileName).data.publicUrl;
     };
 
-    // ── Create post ───────────────────────────────────────────────────────────
+    // Create post//
     const createPost = async () => {
         if (!postContent.trim() && !postImage) { Alert.alert('Empty post', 'Write something or add an image.'); return; }
         if (!isConnected) {
@@ -162,7 +211,6 @@ export default function FeedScreen({ onNotifPress, onARPress }) {
                 user_id: user.id, content: postContent.trim(), image_url: imageUrl,
             }]).select().single();
             if (error) throw new Error(error.message);
-            // Add immediately to feed + profile
             addPost({ ...newPost, profiles: { username: profile?.username, avatar_url: profile?.avatar_url, full_name: profile?.full_name }, likes_count: 0 });
             setPostContent(''); setPostImage(null); setModalVisible(false);
             await successFeedback();
@@ -182,7 +230,7 @@ export default function FeedScreen({ onNotifPress, onARPress }) {
         ]);
     };
 
-    // ── Comments ──────────────────────────────────────────────────────────────
+    //Comments//
     const fetchComments = async (postId) => {
         setLoadingComments(true);
         const { data } = await supabase.from('comments').select('*').eq('post_id', postId).order('created_at', { ascending: true });
@@ -213,7 +261,7 @@ export default function FeedScreen({ onNotifPress, onARPress }) {
         setSendingComment(false);
     };
 
-    // ── Likes modal ───────────────────────────────────────────────────────────
+    //Likes//
     const fetchLikes = async (postId) => {
         setLikesModalPost(postId);
         const { data } = await supabase.from('likes').select('user_id').eq('post_id', postId);
@@ -225,11 +273,25 @@ export default function FeedScreen({ onNotifPress, onARPress }) {
     };
 
     const getTimeAgo = (dateStr) => {
-        const diff = Math.floor((new Date() - new Date(dateStr)) / 1000);
-        if (diff < 60) return `${diff}s`;
-        if (diff < 3600) return `${Math.floor(diff / 60)}m`;
-        if (diff < 86400) return `${Math.floor(diff / 3600)}h`;
-        return `${Math.floor(diff / 86400)}d`;
+        if (!dateStr) return '';
+        try {
+            const diff = Math.floor((new Date() - new Date(dateStr)) / 1000);
+            if (diff < 60) return String(diff) + 's';
+            if (diff < 3600) return String(Math.floor(diff / 60)) + 'm';
+            if (diff < 86400) return String(Math.floor(diff / 3600)) + 'h';
+            if (diff < 604800) return String(Math.floor(diff / 86400)) + 'd';
+            return new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        } catch (e) { return ''; }
+    };
+
+    const getFullDate = (dateStr) => {
+        if (!dateStr) return '';
+        try {
+            return new Date(dateStr).toLocaleDateString('en-US', {
+                weekday: 'short', month: 'short', day: 'numeric',
+                hour: '2-digit', minute: '2-digit'
+            });
+        } catch (e) { return ''; }
     };
 
     const renderPost = ({ item }) => {
@@ -240,12 +302,16 @@ export default function FeedScreen({ onNotifPress, onARPress }) {
                     <View style={[styles.avatarSmall, { backgroundColor: C.card }]}>
                         {item.profiles?.avatar_url
                             ? <Image source={{ uri: item.profiles.avatar_url }} style={styles.avatarImg} />
-                            : <Text style={[styles.avatarInitial, { color: C.primaryLight }]}>{item.profiles?.username?.[0]?.toUpperCase() || '?'}</Text>
+                            : <Text style={[styles.avatarInitial, { color: C.primaryLight }]}>{String(item.profiles?.username?.[0]?.toUpperCase() || '?')}</Text>
                         }
                     </View>
                     <View style={styles.postMeta}>
-                        <Text style={[styles.postUsername, { color: C.text }]}>@{item.profiles?.username || 'user'}</Text>
-                        <Text style={[styles.postTime, { color: C.textMuted }]}>{getTimeAgo(item.created_at)}</Text>
+                        <Text style={[styles.postUsername, { color: C.text }]}>{String('@' + (item.profiles?.username || 'user'))}</Text>
+                        <TouchableOpacity onPress={() => setExpandedTimePost(expandedTimePost === item.id ? null : item.id)}>
+                            <Text style={[styles.postTime, { color: C.textMuted }]}>
+                                {expandedTimePost === item.id ? getFullDate(item.created_at) : String(getTimeAgo(item.created_at) || '')}
+                            </Text>
+                        </TouchableOpacity>
                     </View>
                     <TouchableOpacity style={styles.moreBtn} onPress={() => {
                         if (isOwner) Alert.alert('Options', '', [
@@ -260,13 +326,21 @@ export default function FeedScreen({ onNotifPress, onARPress }) {
 
                 {item.content ? (
                     <Text style={[styles.postContent, { color: C.text }]}>
-                        {item.content.split(' ').map((word, i) =>
-                            word.startsWith('@')
-                                ? <Text key={i} style={{ color: C.primary, fontWeight: '700' }}>{word + ' '}</Text>
-                                : word.startsWith('#')
-                                    ? <Text key={i} style={{ color: C.accent }}>{word + ' '}</Text>
-                                    : <Text key={i} style={{ color: C.text }}>{word + ' '}</Text>
-                        )}
+                        {item.content.split(' ').filter(w => w.length > 0).map((word, i) => {
+                            if (word.startsWith('@')) {
+                                return (
+                                    <Text
+                                        key={i}
+                                        style={{ color: C.primary, fontWeight: '700' }}
+                                        onPress={() => openMentionedProfile(word)}
+                                    >{word + ' '}</Text>
+                                );
+                            }
+                            if (word.startsWith('#')) {
+                                return <Text key={i} style={{ color: C.accent }}>{word + ' '}</Text>;
+                            }
+                            return <Text key={i} style={{ color: C.text }}>{word + ' '}</Text>;
+                        })}
                     </Text>
                 ) : null}
 
@@ -329,8 +403,13 @@ export default function FeedScreen({ onNotifPress, onARPress }) {
                     <TouchableOpacity onPress={() => setDraftsVisible(true)} style={styles.iconBtn}>
                         <Ionicons name="document-text-outline" size={22} color={C.textSecondary} />
                     </TouchableOpacity>
-                    <TouchableOpacity onPress={onNotifPress} style={styles.iconBtn}>
+                    <TouchableOpacity onPress={() => { onNotifPress(); setUnreadCount(0); }} style={[styles.iconBtn, { position: 'relative' }]}>
                         <Ionicons name="notifications-outline" size={22} color={C.textSecondary} />
+                        {unreadCount > 0 && (
+                            <View style={[styles.badge, { backgroundColor: '#a78bfa' }]}>
+                                <Text style={styles.badgeText}>{unreadCount > 99 ? '99+' : String(unreadCount)}</Text>
+                            </View>
+                        )}
                     </TouchableOpacity>
                     <TouchableOpacity style={[styles.newPostBtn, { backgroundColor: C.primary }]} onPress={() => setModalVisible(true)}>
                         <Text style={styles.newPostBtnText}>+ Post</Text>
@@ -389,7 +468,7 @@ export default function FeedScreen({ onNotifPress, onARPress }) {
                                     : <Text style={[styles.avatarInitial, { color: C.primaryLight }]}>{profile?.username?.[0]?.toUpperCase() || '?'}</Text>
                                 }
                             </View>
-                            <Text style={[styles.modalUsername, { color: C.text }]}>@{profile?.username}</Text>
+                            <Text style={[styles.modalUsername, { color: C.text }]}>{'@' + (profile?.username || '')}</Text>
                         </View>
 
                         <TextInput
@@ -411,7 +490,7 @@ export default function FeedScreen({ onNotifPress, onARPress }) {
                                             {u.avatar_url ? <Image source={{ uri: u.avatar_url }} style={{ width: 28, height: 28, borderRadius: 14 }} />
                                                 : <Text style={{ color: C.primaryLight, fontSize: 11, fontWeight: '700' }}>{u.username[0].toUpperCase()}</Text>}
                                         </View>
-                                        <Text style={[styles.mentionUsername, { color: C.text }]}>@{u.username}</Text>
+                                        <Text style={[styles.mentionUsername, { color: C.text }]}>{'@' + (u.username)}</Text>
                                     </TouchableOpacity>
                                 ))}
                             </View>
@@ -476,11 +555,11 @@ export default function FeedScreen({ onNotifPress, onARPress }) {
                                         <View style={[styles.avatarSmall, { width: 32, height: 32, borderRadius: 16, backgroundColor: C.card }]}>
                                             {item.profiles?.avatar_url
                                                 ? <Image source={{ uri: item.profiles.avatar_url }} style={{ width: 32, height: 32, borderRadius: 16 }} />
-                                                : <Text style={[styles.avatarInitial, { fontSize: 12, color: C.primaryLight }]}>{item.profiles?.username?.[0]?.toUpperCase() || '?'}</Text>
+                                                : <Text style={[styles.avatarInitial, { fontSize: 12, color: C.primaryLight }]}>{String(item.profiles?.username?.[0]?.toUpperCase() || '?')}</Text>
                                             }
                                         </View>
                                         <View style={[styles.commentBubble, { backgroundColor: C.card }]}>
-                                            <Text style={[styles.commentUsername, { color: C.primaryLight }]}>@{item.profiles?.username}</Text>
+                                            <Text style={[styles.commentUsername, { color: C.primaryLight }]}>{'@' + (item.profiles?.username)}</Text>
                                             <Text style={[styles.commentText, { color: C.text }]}>{item.content}</Text>
                                         </View>
                                     </View>
@@ -529,7 +608,7 @@ export default function FeedScreen({ onNotifPress, onARPress }) {
                                     </View>
                                     <View>
                                         <Text style={[styles.postUsername, { color: C.text }]}>{item.full_name}</Text>
-                                        <Text style={[styles.postTime, { color: C.textSecondary }]}>@{item.username}</Text>
+                                        <Text style={[styles.postTime, { color: C.textSecondary }]}>{'@' + (item.username)}</Text>
                                     </View>
                                 </View>
                             )}
@@ -541,6 +620,50 @@ export default function FeedScreen({ onNotifPress, onARPress }) {
             {/* Drafts */}
             <Modal visible={draftsVisible} animationType="slide" onRequestClose={() => setDraftsVisible(false)}>
                 <DraftsScreen onClose={() => setDraftsVisible(false)} onDraftPublished={() => { setDraftsVisible(false); fetchPosts(); }} />
+            </Modal>
+
+            {/* Mentioned Profile */}
+            <Modal visible={mentionedProfile !== null} animationType="slide"
+                onRequestClose={() => { setMentionedProfile(null); setMentionedProfilePosts([]); }}>
+                {mentionedProfile && (
+                    <View style={[styles.container, { backgroundColor: C.background }]}>
+                        <StatusBar style="light" />
+                        <View style={[styles.postCard, { borderRadius: 0, borderTopWidth: 0, borderLeftWidth: 0, borderRightWidth: 0, paddingTop: 60, borderBottomColor: C.border, backgroundColor: C.surface }]}>
+                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>
+                                <TouchableOpacity onPress={() => { setMentionedProfile(null); setMentionedProfilePosts([]); }}>
+                                    <Ionicons name="arrow-back" size={22} color={C.text} />
+                                </TouchableOpacity>
+                                <View style={[styles.avatarSmall, { width: 46, height: 46, borderRadius: 23, borderColor: C.primary, backgroundColor: C.card }]}>
+                                    {mentionedProfile.avatar_url
+                                        ? <Image source={{ uri: mentionedProfile.avatar_url }} style={{ width: 46, height: 46, borderRadius: 23 }} />
+                                        : <Text style={[styles.avatarInitial, { color: C.primaryLight }]}>{mentionedProfile.username?.[0]?.toUpperCase()}</Text>
+                                    }
+                                </View>
+                                <View style={{ flex: 1 }}>
+                                    <Text style={[styles.postUsername, { color: C.text, fontSize: 16 }]}>{mentionedProfile.full_name}</Text>
+                                    <Text style={[styles.postTime, { color: C.textSecondary }]}>{'@' + mentionedProfile.username}</Text>
+                                </View>
+                            </View>
+                            {mentionedProfile.bio ? (
+                                <Text style={[styles.postContent, { color: C.textSecondary, marginTop: 8, marginLeft: 0 }]}>{mentionedProfile.bio}</Text>
+                            ) : null}
+                            <Text style={[styles.postTime, { color: C.textMuted, marginTop: 6 }]}>{String(mentionedProfilePosts.length) + ' posts'}</Text>
+                        </View>
+                        <FlashList
+                            data={mentionedProfilePosts}
+                            estimatedItemSize={220}
+                            keyExtractor={item => item.id.toString()}
+                            contentContainerStyle={{ paddingBottom: 20 }}
+                            renderItem={({ item }) => (
+                                <View style={[styles.postCard, { backgroundColor: C.surface, borderColor: C.border }]}>
+                                    {item.content ? <Text style={[styles.postContent, { color: C.text }]}>{item.content}</Text> : null}
+                                    {item.image_url ? <Image source={{ uri: item.image_url }} style={styles.postImage} resizeMode="cover" /> : null}
+                                    <Text style={[styles.postTime, { color: C.textMuted, marginTop: 4 }]}>{getTimeAgo(item.created_at)}</Text>
+                                </View>
+                            )}
+                        />
+                    </View>
+                )}
             </Modal>
 
             {/* Report */}
@@ -556,6 +679,13 @@ const styles = StyleSheet.create({
     headerActions: { flexDirection: 'row', alignItems: 'center', gap: 4 },
     iconBtn: { padding: 6 },
     offlineBadge: { backgroundColor: '#ef4444', borderRadius: 10, paddingHorizontal: 8, paddingVertical: 2 },
+    badge: {
+        position: 'absolute', top: 0, right: 0,
+        minWidth: 16, height: 16, borderRadius: 8,
+        alignItems: 'center', justifyContent: 'center',
+        paddingHorizontal: 3,
+    },
+    badgeText: { color: '#fff', fontSize: 9, fontWeight: '700' },
     offlineBadgeText: { color: '#fff', fontSize: 11, fontWeight: '700' },
     newPostBtn: { borderRadius: RADIUS.full, paddingHorizontal: 14, paddingVertical: 7 },
     newPostBtnText: { color: '#fff', fontWeight: '700', fontSize: 13 },

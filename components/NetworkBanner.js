@@ -47,7 +47,7 @@ export default function NetworkBanner({ isConnected, isCellular }) {
             <Text style={styles.bannerText}>
                 {isConnected
                     ? isCellular
-                        ? '📶 Using cellular data — reduced quality'
+                        ? '📶 Using cellular data - reduced quality'
                         : '✓ Back online'
                     : '⚠ No internet connection'
                 }

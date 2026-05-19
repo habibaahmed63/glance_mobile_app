@@ -36,13 +36,13 @@ export default function ARFiltersScreen({ onClose, onPhotoTaken }) {
     const [faceDetected, setFaceDetected] = useState(false);
     const cameraRef = useRef(null);
 
-    // Draggable filter position — starts at face center
+    // Draggable filter position//
     const filterPos = useRef(new Animated.ValueXY({
         x: SW * 0.15,
         y: SH * 0.28,
     })).current;
 
-    // Filter size slider
+
     const [filterScale, setFilterScale] = useState(1.0);
 
     const selectedFilterRef = useRef(selectedFilter);
@@ -67,7 +67,6 @@ export default function ARFiltersScreen({ onClose, onPhotoTaken }) {
         },
     })).current;
 
-    // Reset position when filter changes
     useEffect(() => {
         selectedFilterRef.current = selectedFilter;
         if (selectedFilter !== 'none') {
@@ -82,7 +81,6 @@ export default function ARFiltersScreen({ onClose, onPhotoTaken }) {
             return;
         }
         setFaceDetected(true);
-        // Mirror x for front camera
         const adjusted = detected.map(face => {
             if (!face.bounds) return face;
             return {
@@ -97,7 +95,6 @@ export default function ARFiltersScreen({ onClose, onPhotoTaken }) {
             };
         });
         setFaces(adjusted);
-        // Auto-move filter to detected face
         if (adjusted[0]?.bounds) {
             const b = adjusted[0].bounds;
             filterPos.setValue({
@@ -151,9 +148,8 @@ export default function ARFiltersScreen({ onClose, onPhotoTaken }) {
         setPosting(false);
     };
 
-    // ── Build filter overlay ──────────────────────────────────────────────────
+    // Build filter overlay//
     const buildFilterContent = () => {
-        // Use face bounds if detected, else use draggable position
         const useFace = faceDetected && faces[0]?.bounds;
         const fw = useFace ? faces[0].bounds.size.width : SW * 0.7;
         const fh = useFace ? faces[0].bounds.size.height : SW * 0.75;
@@ -163,7 +159,6 @@ export default function ARFiltersScreen({ onClose, onPhotoTaken }) {
             case 'sunglasses':
                 return (
                     <View style={[S.filterContent, { width: fw, height: fh }]}>
-                        {/* Position at eye level ~30% down */}
                         <Text style={[S.filterText, { fontSize: base * 0.78, position: 'absolute', top: fh * 0.27, left: 0, right: 0, textAlign: 'center' }]}>
                             🕶️
                         </Text>
@@ -172,7 +167,6 @@ export default function ARFiltersScreen({ onClose, onPhotoTaken }) {
             case 'crown':
                 return (
                     <View style={[S.filterContent, { width: fw, height: fh }]}>
-                        {/* Crown above head */}
                         <Text style={[S.filterText, { fontSize: base * 0.82, position: 'absolute', top: -fh * 0.45, left: 0, right: 0, textAlign: 'center' }]}>
                             👑
                         </Text>
@@ -321,7 +315,6 @@ export default function ARFiltersScreen({ onClose, onPhotoTaken }) {
                     {...panResponder.panHandlers}
                 >
                     {buildFilterContent()}
-                    {/* Drag hint border */}
                     <View style={S.dragHint}>
                         <Text style={S.dragHintText}>drag to move</Text>
                     </View>
@@ -399,7 +392,6 @@ const S = StyleSheet.create({
     filterContent: { position: 'relative' },
     filterText: { textShadowColor: 'rgba(0,0,0,0.3)', textShadowRadius: 6 },
 
-    // Draggable filter container
     draggableFilter: {
         position: 'absolute',
         zIndex: 10,
@@ -413,7 +405,6 @@ const S = StyleSheet.create({
         backgroundColor: 'rgba(0,0,0,0.4)', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 10,
     },
 
-    // Top bar
     topBar: {
         position: 'absolute', top: 52, left: 0, right: 0,
         flexDirection: 'row', alignItems: 'center',
@@ -438,7 +429,6 @@ const S = StyleSheet.create({
     },
     instructionText: { color: 'rgba(255,255,255,0.85)', fontSize: 13, textAlign: 'center', lineHeight: 18 },
 
-    // Size controls
     sizeControls: {
         position: 'absolute', right: 16, top: SH * 0.4,
         alignItems: 'center', gap: 6,
@@ -450,7 +440,6 @@ const S = StyleSheet.create({
     sizeBtnText: { color: '#fff', fontSize: 20, fontWeight: '700' },
     sizeLabel: { color: 'rgba(255,255,255,0.6)', fontSize: 11 },
 
-    // Shutter
     shutter: { position: 'absolute', bottom: 118, alignSelf: 'center' },
     shutterOuter: {
         width: 80, height: 80, borderRadius: 40,
@@ -460,7 +449,6 @@ const S = StyleSheet.create({
     },
     shutterInner: { width: 64, height: 64, borderRadius: 32, backgroundColor: '#fff' },
 
-    // Filter strip
     filterBar: {
         position: 'absolute', bottom: 0, left: 0, right: 0,
         backgroundColor: 'rgba(0,0,0,0.82)',
@@ -477,7 +465,7 @@ const S = StyleSheet.create({
     chipLabel: { color: 'rgba(255,255,255,0.55)', fontSize: 10 },
     chipLabelActive: { color: COLORS.primaryLight, fontWeight: '700' },
 
-    // Preview
+
     filterBadge: {
         position: 'absolute', top: 60, alignSelf: 'center',
         backgroundColor: 'rgba(0,0,0,0.7)', borderRadius: 20,
@@ -505,7 +493,6 @@ const S = StyleSheet.create({
         backgroundColor: 'rgba(0,0,0,0.6)', alignItems: 'center', justifyContent: 'center',
     },
 
-    // Permission
     permTitle: { color: '#fff', fontSize: 22, fontWeight: '700', marginBottom: 10, textAlign: 'center' },
     permSub: { color: COLORS.textSecondary, fontSize: 15, textAlign: 'center', lineHeight: 22, marginBottom: 30 },
     permBtn: {

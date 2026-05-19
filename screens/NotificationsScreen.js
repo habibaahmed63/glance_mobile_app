@@ -23,7 +23,6 @@ export default function NotificationsScreen({ onClose }) {
     const fetchNotifications = async () => {
         setLoading(true);
         try {
-            // Step 1: Get all post IDs that belong to the current user
             const { data: myPosts } = await supabase
                 .from('posts')
                 .select('id, content')
@@ -37,7 +36,7 @@ export default function NotificationsScreen({ onClose }) {
             let commentsNotifs = [];
 
             if (myPostIds.length > 0) {
-                // Step 2: Get likes on my posts (exclude my own likes)
+                //Get likes on my posts//
                 const { data: likesData } = await supabase
                     .from('likes')
                     .select('id, user_id, post_id, created_at')
@@ -66,7 +65,7 @@ export default function NotificationsScreen({ onClose }) {
                     }));
                 }
 
-                // Step 3: Get comments on my posts (exclude my own comments)
+                //Get comments on my posts//
                 const { data: commentsData } = await supabase
                     .from('comments')
                     .select('id, user_id, post_id, content, created_at')
@@ -97,7 +96,7 @@ export default function NotificationsScreen({ onClose }) {
                 }
             }
 
-            // Step 4: Get new followers
+            //Get new followers//
             const { data: followsData } = await supabase
                 .from('follows')
                 .select('id, follower_id, created_at')
@@ -125,7 +124,7 @@ export default function NotificationsScreen({ onClose }) {
                 }));
             }
 
-            // Merge and sort all notifications by date
+            // Merge and sort all notifications by date//
             const all = [...likesNotifs, ...commentsNotifs, ...followNotifs]
                 .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 

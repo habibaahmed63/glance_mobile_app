@@ -143,7 +143,7 @@ export default function DraftsScreen({ onClose, onDraftPublished, themeColors })
             {!isConnected && (
                 <View style={styles.offlineBadge}>
                     <Ionicons name="cloud-offline-outline" size={16} color="#fff" />
-                    <Text style={styles.offlineBadgeText}>Offline — drafts will publish when connected</Text>
+                    <Text style={styles.offlineBadgeText}>Offline - drafts will publish when connected</Text>
                 </View>
             )}
 

@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { View, Modal, StyleSheet, AppState } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -23,6 +23,33 @@ import { COLORS, darkColors, lightColors } from './constants/theme';
 import { mediumFeedback } from './utils/haptics';
 import { useNetworkStatus } from './utils/useNetworkStatus';
 import { registerForPushNotifications } from './utils/notifications';
+
+class ErrorBoundary extends React.Component {
+  constructor(props) { super(props); this.state = { error: null }; }
+  componentDidCatch(error, info) {
+    console.log('ERROR BOUNDARY CAUGHT:', error.message);
+    console.log('COMPONENT STACK:', info.componentStack);
+  }
+  static getDerivedStateFromError(error) { return { error }; }
+  render() {
+    if (this.state.error) {
+      return null;
+    }
+    return this.props.children;
+  }
+}
+
+
+
+// TEXT ERROR INTERCEPTOR - remove after finding bug
+const _origError = console.error;
+console.error = (...args) => {
+  if (args[0] && String(args[0]).includes('Text strings must')) {
+    const stack = new Error('TEXT_ERROR_LOCATION').stack;
+    _origError('🔴 TEXT ERROR STACK:', stack);
+  }
+  _origError(...args);
+};
 
 const Tab = createBottomTabNavigator();
 const BIOMETRIC_KEY = 'glance_biometric_enabled';
@@ -189,7 +216,8 @@ export default function App() {
   if (appState === 'signup') return <SignupScreen onGoLogin={() => setAppState('login')} />;
 
   return (
-    <>
+    <ErrorBoundary>
+      <>
       <MainApp
         onARPress={() => setArVisible(true)}
         onNotifPress={() => setNotifVisible(true)}
@@ -201,6 +229,7 @@ export default function App() {
         <NotificationsScreen onClose={() => setNotifVisible(false)} />
       </Modal>
     </>
+    </ErrorBoundary>
   );
 }
 

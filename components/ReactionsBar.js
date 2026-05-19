@@ -10,8 +10,7 @@ import { supabase } from '../supabaseClient';
 import useAuthStore from '../store/authStore';
 import { COLORS, RADIUS } from '../constants/theme';
 
-const EMOJIS = ['❤️', '😂', '😮', '😢', '😡', '🔥'];
-
+const EMOJIS = ["❤", "😂", "😮", "😢", "😡", "🔥"];
 export default function ReactionsBar({ postId, initialLikes = 0 }) {
     const { user } = useAuthStore();
     const [reactions, setReactions] = useState({});
@@ -23,6 +22,7 @@ export default function ReactionsBar({ postId, initialLikes = 0 }) {
         fetchReactions();
     }, [postId]);
 
+    //Fetch reactions for post//
     const fetchReactions = async () => {
         const { data } = await supabase
             .from('reactions')
@@ -40,6 +40,7 @@ export default function ReactionsBar({ postId, initialLikes = 0 }) {
         }
     };
 
+    //Handle reaction tap//
     const handleReaction = async (emoji) => {
         setShowPicker(false);
         await mediumFeedback();
@@ -84,6 +85,7 @@ export default function ReactionsBar({ postId, initialLikes = 0 }) {
 
     return (
         <View style={styles.container}>
+            {/* Reaction button */}
             <TouchableOpacity
                 style={[styles.likeBtn, userReaction && styles.likeBtnActive]}
                 onPress={() => {
@@ -95,9 +97,7 @@ export default function ReactionsBar({ postId, initialLikes = 0 }) {
                 }}
                 onLongPress={() => setShowPicker(true)}
             >
-                <Text style={styles.likeBtnEmoji}>
-                    {userReaction || '♡'}
-                </Text>
+                <Text style={styles.likeBtnEmoji}>{userReaction || "♡"}</Text>
                 {totalCount > 0 && (
                     <Text style={[styles.likeCount, userReaction && styles.likeCountActive]}>
                         {totalCount}
@@ -105,6 +105,7 @@ export default function ReactionsBar({ postId, initialLikes = 0 }) {
                 )}
             </TouchableOpacity>
 
+            {/* Top reaction bubbles */}
             {topReactions.length > 0 && (
                 <View style={styles.reactionBubbles}>
                     {topReactions.map(([emoji, count]) => (
@@ -120,7 +121,8 @@ export default function ReactionsBar({ postId, initialLikes = 0 }) {
                 </View>
             )}
 
-            =            <Modal
+            {/* Emoji picker */}
+            <Modal
                 visible={showPicker}
                 transparent
                 animationType="fade"

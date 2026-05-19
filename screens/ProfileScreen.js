@@ -206,7 +206,7 @@ export default function ProfileScreen() {
         ]);
     };
 
-    // EDIT MODE//
+    // EDIT MODE
     if (editMode) {
         return (
             <KeyboardAvoidingView style={[styles.container, { backgroundColor: C.background }]} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
@@ -221,7 +221,11 @@ export default function ProfileScreen() {
                     </View>
                     <View style={styles.avatarSection}>
                         <TouchableOpacity style={styles.avatarContainer} onPress={pickAvatar}>
-                            <View style={[styles.avatarRing, { borderColor: hasStory ? COLORS.primary : C.border }]}>
+                            <View style={[
+                                styles.avatarRing,
+                                { borderColor: hasStory ? COLORS.primary : C.border },
+                                hasStory && { shadowColor: COLORS.primary, shadowOpacity: 0.8, shadowRadius: 8, shadowOffset: { width: 0, height: 0 }, elevation: 8 }
+                            ]}>
                                 {uploading ? <ActivityIndicator color={COLORS.primary} />
                                     : avatarUri ? <Image source={{ uri: avatarUri }} style={styles.avatarImg} />
                                         : <View style={[styles.avatarPlaceholder, { backgroundColor: C.surface }]}>
@@ -265,7 +269,7 @@ export default function ProfileScreen() {
         <View style={[styles.container, { backgroundColor: C.background }]}>
             <StatusBar style="light" />
             <View style={[styles.header, { borderBottomColor: C.border }]}>
-                <Text style={[styles.profileUsername, { color: C.text }]}>@{profile?.username}</Text>
+                <Text style={[styles.profileUsername, { color: C.text }]}>{'@' + (profile?.username)}</Text>
                 <View style={styles.headerRight}>
                     <TouchableOpacity onPress={() => setBiometricVisible(true)} style={styles.iconBtn}>
                         <Ionicons name="finger-print-outline" size={22} color={C.textSecondary} />
@@ -288,7 +292,11 @@ export default function ProfileScreen() {
             <ScrollView showsVerticalScrollIndicator={false}>
                 <View style={styles.profileInfo}>
                     <TouchableOpacity onPress={pickAvatar}>
-                        <View style={[styles.avatarRing, { borderColor: hasStory ? COLORS.primary : C.border }]}>
+                        <View style={[
+                            styles.avatarRing,
+                            { borderColor: hasStory ? COLORS.primary : C.border },
+                            hasStory && { shadowColor: COLORS.primary, shadowOpacity: 0.8, shadowRadius: 8, shadowOffset: { width: 0, height: 0 }, elevation: 8 }
+                        ]}>
                             {avatarUri ? <Image source={{ uri: avatarUri }} style={styles.avatarImg} />
                                 : <View style={[styles.avatarPlaceholder, { backgroundColor: C.surface }]}>
                                     <Text style={[styles.avatarInitial, { color: COLORS.primaryLight }]}>{profile?.full_name?.[0]?.toUpperCase() || '?'}</Text>
@@ -343,7 +351,7 @@ export default function ProfileScreen() {
                 )}
             </ScrollView>
 
-            {/* Post Detail Modal */}
+            {/* Post Detail */}
             <Modal visible={selectedPost !== null} animationType="slide" transparent onRequestClose={() => { setSelectedPost(null); setPostLikes([]); setPostComments([]); }}>
                 <View style={styles.modalOverlay}>
                     <TouchableOpacity style={styles.modalBackdrop} onPress={() => { setSelectedPost(null); setPostLikes([]); setPostComments([]); }} />
@@ -414,7 +422,7 @@ export default function ProfileScreen() {
                 </View>
             </Modal>
 
-            {/* Follow List Modal */}
+            {/* Follow List */}
             <Modal visible={followListVisible} animationType="slide" transparent onRequestClose={() => { setFollowListVisible(false); setFollowList([]); }}>
                 <View style={styles.modalOverlay}>
                     <TouchableOpacity style={styles.modalBackdrop} onPress={() => { setFollowListVisible(false); setFollowList([]); }} />
@@ -432,7 +440,7 @@ export default function ProfileScreen() {
                                             </View>
                                             <View style={{ flex: 1 }}>
                                                 <Text style={[{ fontWeight: '600', fontSize: 15, color: C.text }]}>{item.full_name}</Text>
-                                                <Text style={[{ fontSize: 13, color: C.textSecondary }]}>@{item.username}</Text>
+                                                <Text style={[{ fontSize: 13, color: C.textSecondary }]}>{'@' + (item.username)}</Text>
                                             </View>
                                         </View>
                                     )}
@@ -467,7 +475,10 @@ const styles = StyleSheet.create({
     profileInfo: { flexDirection: 'row', alignItems: 'center', padding: 16, gap: 20 },
     avatarSection: { alignItems: 'center', paddingVertical: 16 },
     avatarContainer: { position: 'relative' },
-    avatarRing: { width: 86, height: 86, borderRadius: 43, borderWidth: 2, padding: 2, alignItems: 'center', justifyContent: 'center' },
+    avatarRing: {
+        width: 86, height: 86, borderRadius: 43, borderWidth: 2.5,
+        padding: 2, alignItems: 'center', justifyContent: 'center',
+    },
     avatarImg: { width: 78, height: 78, borderRadius: 39 },
     avatarPlaceholder: { width: 78, height: 78, borderRadius: 39, alignItems: 'center', justifyContent: 'center' },
     avatarInitial: { fontSize: 30, fontWeight: '700' },
