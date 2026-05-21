@@ -90,7 +90,7 @@ export default function FeedScreen({ onNotifPress, onARPress }) {
             }
             const myPostIds = myPosts.map(p => p.id);
 
-            // Count ALL likes + comments on my posts//
+            // Count likes + comments on my posts//
             const { count: likesCount } = await supabase.from('likes')
                 .select('*', { count: 'exact', head: true })
                 .in('post_id', myPostIds)
