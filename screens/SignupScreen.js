@@ -45,7 +45,7 @@ export default function SignupScreen({ onGoLogin }) {
             Alert.alert('Invalid username', 'Username cannot contain spaces.');
             return;
         }
-
+        
         setLoading(true);
 
         const { data: existing } = await supabase

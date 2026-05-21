@@ -5,6 +5,7 @@ import {
     Dimensions, Platform, Animated, PanResponder
 } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
+import ViewShot from 'react-native-view-shot';
 import * as ImageManipulator from 'expo-image-manipulator';
 import { Ionicons } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
@@ -35,13 +36,13 @@ export default function ARFiltersScreen({ onClose, onPhotoTaken }) {
     const [faces, setFaces] = useState([]);
     const [faceDetected, setFaceDetected] = useState(false);
     const cameraRef = useRef(null);
+    const viewShotRef = useRef(null);
 
     // Draggable filter position//
     const filterPos = useRef(new Animated.ValueXY({
         x: SW * 0.15,
         y: SH * 0.28,
     })).current;
-
 
     const [filterScale, setFilterScale] = useState(1.0);
 
@@ -67,6 +68,7 @@ export default function ARFiltersScreen({ onClose, onPhotoTaken }) {
         },
     })).current;
 
+    // Reset position//
     useEffect(() => {
         selectedFilterRef.current = selectedFilter;
         if (selectedFilter !== 'none') {
@@ -123,7 +125,11 @@ export default function ARFiltersScreen({ onClose, onPhotoTaken }) {
         if (!capturedPhoto || !user) return;
         setPosting(true);
         try {
-            const res = await fetch(capturedPhoto);
+            let uploadUri = capturedPhoto;
+            if (selectedFilter !== 'none' && viewShotRef.current) {
+                try { uploadUri = await viewShotRef.current.capture(); } catch (e) { }
+            }
+            const res = await fetch(uploadUri);
             const blob = await res.blob();
             const ab = await new Response(blob).arrayBuffer();
             const fn = `posts/${user.id}_ar_${Date.now()}.jpg`;
@@ -246,7 +252,14 @@ export default function ARFiltersScreen({ onClose, onPhotoTaken }) {
         return (
             <View style={S.full}>
                 <StatusBar style="light" hidden />
-                <Image source={{ uri: capturedPhoto }} style={StyleSheet.absoluteFill} resizeMode="cover" />
+                <ViewShot ref={viewShotRef} style={StyleSheet.absoluteFill} options={{ format: 'jpg', quality: 0.9 }}>
+                    <Image source={{ uri: capturedPhoto }} style={StyleSheet.absoluteFill} resizeMode="cover" />
+                    {selectedFilter !== 'none' && (
+                        <Animated.View style={[S.draggableFilter, { transform: filterPos.getTranslateTransform() }]} pointerEvents="none">
+                            {buildFilterContent()}
+                        </Animated.View>
+                    )}
+                </ViewShot>
                 {selectedFilter !== 'none' && (
                     <View style={S.filterBadge}>
                         <Text style={S.filterBadgeText}>
@@ -299,14 +312,13 @@ export default function ARFiltersScreen({ onClose, onPhotoTaken }) {
                 }}
             />
 
-            {/* Instruction when no filter */}
+            {/* when no filter */}
             {selectedFilter === 'none' && (
                 <View style={S.instruction}>
                     <Text style={S.instructionText}>Select a filter below, then drag it over your face</Text>
                 </View>
             )}
 
-            {/* Draggable filter overlay */}
             {selectedFilter !== 'none' && (
                 <Animated.View
                     style={[S.draggableFilter, {
